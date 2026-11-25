@@ -2,13 +2,26 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const { mkdtemp, readFile, rm } = require('node:fs/promises');
+const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 
+function getFreePort() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.unref();
+    srv.on('error', reject);
+    srv.listen(0, '127.0.0.1', () => {
+      const addr = srv.address();
+      srv.close(() => resolve(addr.port));
+    });
+  });
+}
+
 async function startServer(dataDir) {
-  const port = 40000 + Math.floor(Math.random() * 20000);
+  const port = await getFreePort();
   const base = `http://127.0.0.1:${port}`;
   const child = spawn(process.execPath, ['server.js'], {
     cwd: root,

@@ -101,3 +101,76 @@ test('CP-32 admin bundle omits demo passwords and heatmap metrics + Canvas layer
   assert.ok(Array.isArray(m.heat) && m.heat.length > 0);
   assert.ok(m.heat.every(p => typeof p.lat === 'number' && typeof p.lng === 'number' && p.intensity >= 1));
 });
+test('CP-36 multimedia Magic Bytes rejects forged image/MIME and accepts valid PNG + MP4 attachments', async () => {
+  const forged = 'data:image/jpeg;base64,' + Buffer.from('NOT_A_JPEG_HEADER').toString('base64');
+  const badRes = await req('/api/reports', {
+    method: 'POST',
+    token: citizenToken,
+    body: { lat: -41.466, lng: -72.944, category: 'Otro', description: 'Intento con archivo JPG falsificado.', photo: forged, media: [{ type: 'image/jpeg', data: forged }] }
+  });
+  assert.equal(badRes.status, 400);
+  assert.match(badRes.data.error, /firma del archivo JPG/);
+  const badMime = 'data:text/plain;base64,' + Buffer.from('texto').toString('base64');
+  const badMimeRes = await req('/api/reports', {
+    method: 'POST',
+    token: citizenToken,
+    body: { lat: -41.466, lng: -72.944, category: 'Otro', description: 'Intento con formato no admitido.', photo: badMime, media: [{ type: 'text/plain', data: badMime }] }
+  });
+  assert.equal(badMimeRes.status, 400);
+  const validPng = 'data:image/png;base64,' + Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).toString('base64');
+  const validMp4 = 'data:video/mp4;base64,' + Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from('ftypisom')]).toString('base64');
+  const okRes = await req('/api/reports', {
+    method: 'POST',
+    token: citizenToken,
+    body: { lat: -41.466, lng: -72.944, category: 'Otro', description: 'Reporte válido con PNG y video MP4 verificados por Magic Bytes.', photo: validPng, media: [{ type: 'image/png', data: validPng }, { type: 'video/mp4', data: validMp4 }] }
+  });
+  assert.equal(okRes.status, 201);
+});
+test('CP-37 public resolved folio exposes Before/After media, closure technical report and crew without PII', async () => {
+  const resolved = (await req('/api/reports?status=RESUELTO')).data.find(r => r.after && r.closure);
+  assert.ok(resolved);
+  const detail = (await req(`/api/reports/${resolved.folio}`)).data.report;
+  assert.ok(detail.after);
+  assert.ok(detail.closure && detail.closure.text.length >= 50);
+  assert.ok(detail.closure.crew && detail.closure.crew.length > 0);
+  assert.ok(Array.isArray(detail.history) && detail.history.length >= 1);
+  assert.equal(detail.citizen, undefined);
+});
+test('CP-38 HTTP derivation and rejection require justification >= 20 characters (RN-05)', async () => {
+  const candidate = (await req('/api/admin/reports', { token: adminToken })).data.find(r => r.status === 'PENDIENTE');
+  assert.ok(candidate);
+  const shortReject = await req(`/api/admin/reports/${candidate.id}/transition`, {
+    method: 'POST',
+    token: adminToken,
+    body: { status: 'RECHAZADO', comment: 'Muy corto' }
+  });
+  assert.equal(shortReject.status, 400);
+  const rev = await req(`/api/admin/reports/${candidate.id}/transition`, {
+    method: 'POST',
+    token: adminToken,
+    body: { status: 'EN_REVISION', comment: 'Pasa a revisión técnica municipal.' }
+  });
+  assert.equal(rev.status, 200);
+  const shortDerive = await req(`/api/admin/reports/${candidate.id}/transition`, {
+    method: 'POST',
+    token: adminToken,
+    body: { status: 'DERIVADO', department: 'Tránsito', comment: 'Corto' }
+  });
+  assert.equal(shortDerive.status, 400);
+  const okDerive = await req(`/api/admin/reports/${candidate.id}/transition`, {
+    method: 'POST',
+    token: adminToken,
+    body: { status: 'DERIVADO', department: 'Tránsito', comment: 'Se deriva a la Dirección de Tránsito por competencia técnica vial.' }
+  });
+  assert.equal(okDerive.status, 200);
+  assert.equal(okDerive.data.report.status, 'DERIVADO');
+});
+test('CP-39 public status/category filters and authenticated citizen /api/track work accurately', async () => {
+  const filtered = (await req('/api/reports?status=RESUELTO&category=Alumbrado%20p%C3%BAblico')).data;
+  assert.ok(filtered.length >= 1);
+  assert.ok(filtered.every(r => r.status === 'RESUELTO' && r.category === 'Alumbrado público'));
+  const tracked = await req('/api/track', { method: 'POST', token: citizenToken, body: {} });
+  assert.equal(tracked.status, 200);
+  assert.ok(Array.isArray(tracked.data.reports) && tracked.data.reports.length >= 1);
+  assert.ok(tracked.data.reports.every(r => r.citizen === undefined));
+});

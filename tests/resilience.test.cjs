@@ -200,8 +200,11 @@ test('CP-35 backup and restore of db.json recovers exact prior database snapshot
     assert.equal(reg.status, 201);
     const token = reg.data.token;
     const baseline = (await req(srv.base, '/api/reports')).data.length;
+    const baselineNotifs = (await req(srv.base, '/api/citizens/notifications', { token })).data.notifications.length;
 
     await stopServer(srv.proc);
+    const baselineDb = JSON.parse(await readFile(path.join(dataDir, 'db.json'), 'utf8'));
+    const baselineEvents = baselineDb.tables.events.length;
     await copyFile(path.join(dataDir, 'db.json'), backupFile);
 
     // Mutate state after backup
@@ -222,6 +225,7 @@ test('CP-35 backup and restore of db.json recovers exact prior database snapshot
     assert.equal(extra.status, 201);
     const extraFolio = extra.data.report.folio;
     assert.equal((await req(srv.base, '/api/reports')).data.length, baseline + 1);
+    assert.equal((await req(srv.base, '/api/citizens/notifications', { token })).data.notifications.length, baselineNotifs + 1);
 
     // Restore backup
     await stopServer(srv.proc);
@@ -229,6 +233,9 @@ test('CP-35 backup and restore of db.json recovers exact prior database snapshot
     srv = await startServer(dataDir);
 
     assert.equal((await req(srv.base, '/api/reports')).data.length, baseline);
+    assert.equal((await req(srv.base, '/api/citizens/notifications', { token })).data.notifications.length, baselineNotifs);
+    const restoredDb = JSON.parse(await readFile(path.join(dataDir, 'db.json'), 'utf8'));
+    assert.equal(restoredDb.tables.events.length, baselineEvents);
     const missing = await req(srv.base, `/api/reports/${extraFolio}`);
     assert.equal(missing.status, 404);
   } finally {
