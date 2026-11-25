@@ -16,7 +16,7 @@ async function login(email, password) { return req('/api/auth/login', { method: 
 before(async () => {
   dataDir = await mkdtemp(path.join(os.tmpdir(), 'reporta-test-'));
   const day='2026-11-16T12:00:00.000Z';
-  const fixtures=Array.from({length:50},(_,i)=>({id:`fixture-${i}`,folio:`RPM-2026-${String(i+1).padStart(4,'0')}`,category:'Alumbrado público',description:`Caso sintético de prueba ${i+1}.`,lat:-41.45+(i*.0001),lng:-72.90,status:i===0?'RESUELTO':i===1?'EN_REVISION':'PENDIENTE',department:i===2?'Aseo y Ornato':'Operaciones',createdAt:day,updatedAt:day,severity:2,closure:i===0?{text:'Trabajo realizado y validado en el lugar.',crew:'Cuadrilla de prueba',closedAt:'2026-11-17T12:00:00.000Z'}:null,reporterId:null}));
+  const fixtures=Array.from({length:50},(_,i)=>({id:`fixture-${i}`,folio:`RPM-2026-${String(i+1).padStart(4,'0')}`,category:'Alumbrado público',description:`Caso sintético de prueba ${i+1}.`,lat:-41.45+(i*.0001),lng:-72.90,status:i===0?'RESUELTO':i===1?'EN_REVISION':'PENDIENTE',department:i===2?'Aseo y Ornato':'Operaciones',createdAt:day,updatedAt:day,severity:2,closure:i===0?{text:'Trabajo realizado, verificado en terreno y documentado por cuadrilla municipal.',crew:'Cuadrilla de prueba',closedAt:'2026-11-17T12:00:00.000Z'}:null,reporterId:null}));
   const oldStaff=[['mesa@reporta.local','Mesa2026!','OPERADOR_MESA','Mesa de ayuda','Operador Mesa'],['inspector@reporta.local','Inspector2026!','INSPECTOR_DEPTO','Operaciones','Inspector Municipal'],['admin@reporta.local','Admin2026!','ADMIN_MUNICIPAL','Administración','Administrador']].map(([email,password,role,department,name],i)=>{const salt=`test-salt-${i}`,passwordHash=`${salt}:${crypto.scryptSync(password,salt,64).toString('hex')}`;return{id:`staff-${i}`,email,role,department,name,passwordHash}});
   await writeFile(path.join(dataDir,'db.json'),JSON.stringify({schemaVersion:3,tables:{reports:fixtures,staff:oldStaff,citizens:[],reporters:[],verificationRequests:[],events:[],supporters:[],reportHistory:fixtures.map(r=>({reportId:r.id,status:r.status,date:r.createdAt,comment:'Semilla segura',staff:null})),reportComments:[],reportMedia:[]}}));
   const port = 32000 + Math.floor(Math.random() * 20000); base = `http://127.0.0.1:${port}`;
@@ -89,4 +89,15 @@ test('CP-31 commune polygon rejects coordinates outside Puerto Montt even inside
   });
   assert.equal(res.status, 400);
   assert.match(res.data.error, /límite comunal/);
+});
+test('CP-32 admin bundle omits demo passwords and heatmap metrics + Canvas layer operate', async () => {
+  const adminHtml = await (await fetch(`${base}/admin`)).text();
+  const bundle = await (await fetch(`${base}/app.js`)).text();
+  assert.doesNotMatch(adminHtml, /data-demo|Accesos de demostración/);
+  assert.doesNotMatch(bundle, /Mesa2026!|Inspector2026!|Admin2026!|data-demo/);
+  assert.match(bundle, /leaflet-heatmap-layer/);
+  assert.match(bundle, /createRadialGradient/);
+  const m = (await req('/api/admin/metrics', { token: adminToken })).data;
+  assert.ok(Array.isArray(m.heat) && m.heat.length > 0);
+  assert.ok(m.heat.every(p => typeof p.lat === 'number' && typeof p.lng === 'number' && p.intensity >= 1));
 });

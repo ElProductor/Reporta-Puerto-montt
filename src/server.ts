@@ -328,28 +328,71 @@ function seed(): void {
     }));
   }
 
+  const mesaStaff = db.staff.find(x => x.role === 'OPERADOR_MESA') ?? null;
+  const inspectorStaff = db.staff.find(x => x.role === 'INSPECTOR_DEPTO') ?? null;
+
   const cats = CATEGORIES.slice(0, 6);
+  // Coordenadas urbanas terrestres dentro de PUERTO_MONTT_POLYGON (excluye mar abierto y humedales costeros)
   const spots: readonly (readonly [number, number])[] = [
-    [-41.469, -72.941],
-    [-41.474, -72.936],
-    [-41.455, -72.917],
-    [-41.486, -72.925],
-    [-41.437, -72.917],
-    [-41.505, -72.851],
-    [-41.397, -73.015],
-    [-41.471, -72.932],
+    [-41.4690, -72.9411], // Centro / Plaza de Armas
+    [-41.4650, -72.9310], // Población Modelo / Seminario
+    [-41.4550, -72.9170], // Lintz / Presidente Ibáñez
+    [-41.4615, -72.9610], // Mirasol / Vicuña Mackenna
+    [-41.4370, -72.9170], // Alerce Sur
+    [-41.4680, -72.9160], // Valle Volcanes / Hospital
+    [-41.4585, -72.9495], // Antonio Varas / Bosquemar
+    [-41.4480, -72.9360], // Ruta 5 Norte / Parque Industrial
   ];
-  const sectors = ['Centro', 'Mirasol', 'Alerce', 'Pelluco', 'Bosquemar', 'Chinquihue'] as const;
+  const sectors = ['Centro', 'Seminario', 'Presidente Ibáñez', 'Mirasol', 'Alerce Sur', 'Valle Volcanes'] as const;
   const depts = ['Operaciones', 'Aseo y Ornato', 'Tránsito'] as const;
   const earlyStatuses = ['PENDIENTE', 'EN_REVISION', 'EN_TERRENO', 'DERIVADO'] as const;
 
+  const shiftIso = (baseIso: string, hours: number): string =>
+    new Date(Date.parse(baseIso) + hours * 3_600_000).toISOString();
+
   for (let i = db.reports.length; i < 50; i++) {
-    const s = spots[i % spots.length] ?? [-41.469, -72.941];
+    const s = spots[i % spots.length] ?? [-41.4690, -72.9411];
     const cat = cats[i % cats.length] ?? 'Otro';
     const status = i < 12 ? (earlyStatuses[i % 4] ?? 'PENDIENTE') : i % 6 === 0 ? 'RESUELTO' : 'PENDIENTE';
-    const created = days((i % 12) + 1);
+    const created = days((i % 9) + 4);
     const sector = sectors[i % sectors.length] ?? 'Centro';
     const dept = depts[i % depts.length] ?? 'Operaciones';
+
+    const history = [{ status: 'PENDIENTE', date: created, comment: 'Reporte recibido', staff: null as string | null }];
+    if (status === 'EN_REVISION' || status === 'DERIVADO' || status === 'EN_TERRENO' || status === 'RESUELTO') {
+      history.push({
+        status: 'EN_REVISION',
+        date: shiftIso(created, 6),
+        comment: 'Antecedentes validados en mesa de ayuda municipal',
+        staff: mesaStaff?.name ?? null,
+      });
+    }
+    if (status === 'DERIVADO') {
+      history.push({
+        status: 'DERIVADO',
+        date: shiftIso(created, 14),
+        comment: `Caso derivado a ${dept} por competencia técnica territorial`,
+        staff: mesaStaff?.name ?? null,
+      });
+    }
+    if (status === 'EN_TERRENO' || status === 'RESUELTO') {
+      history.push({
+        status: 'EN_TERRENO',
+        date: shiftIso(created, 18),
+        comment: 'Cuadrilla municipal despachada a terreno para inspección y reparación',
+        staff: inspectorStaff?.name ?? null,
+      });
+    }
+    if (status === 'RESUELTO') {
+      history.push({
+        status: 'RESUELTO',
+        date: shiftIso(created, 72),
+        comment: 'Cierre técnico verificado en terreno con respaldo operativo',
+        staff: inspectorStaff?.name ?? null,
+      });
+    }
+
+    const updated = history[history.length - 1]?.date ?? created;
     db.reports.push({
       id: id(),
       folio: `RPM-${new Date().getFullYear()}-${String(i + 1).padStart(4, '0')}`,
@@ -360,7 +403,7 @@ function seed(): void {
       status,
       department: dept,
       createdAt: created,
-      updatedAt: created,
+      updatedAt: updated,
       anonymousName: 'Vecino',
       rut: '',
       email: '',
@@ -371,7 +414,7 @@ function seed(): void {
       after: null,
       media: [],
       closure: null,
-      history: [{ status: 'PENDIENTE', date: created, comment: 'Reporte recibido' }],
+      history,
     });
   }
 }
@@ -379,11 +422,12 @@ function seed(): void {
 fs.mkdirSync(DATA_DIR, { recursive: true });
 seed();
 if (!db.events.length) {
+  const staffIdByName = new Map(db.staff.map(s => [s.name, s.id]));
   db.events = db.reports.flatMap(r =>
     r.history.map(h => ({
       id: id(),
       reportId: r.id,
-      staffId: null,
+      staffId: h.staff ? (staffIdByName.get(h.staff) ?? null) : null,
       status: h.status,
       date: h.date,
       comment: h.comment,

@@ -424,7 +424,7 @@ async function openPublic(folio: string): Promise<void> {
     const { report: r } = await api<{ report: PublicReport }>(`/api/reports/${encodeURIComponent(folio)}`);
     const content = $('#detailContent');
     if (content) {
-      content.innerHTML = `<span class="eyebrow">SEGUIMIENTO CIUDADANO</span><h2 class="modal-title" id="detailTitle">${esc(r.category)}</h2><p class="modal-subtitle">${esc(r.folio)} · Reportado el ${dateTime(r.createdAt)}</p><span class="status-badge status-${esc(r.status)}">${sym(r.status)} ${esc(human(r.status))}</span><p>${esc(r.description)}</p>${r.before ? `<img class="modal-photo" src="${r.before}" alt="Evidencia inicial del reporte">` : ''}${r.after ? `<h3>Trabajo realizado</h3><img class="modal-photo" src="${r.after}" alt="Fotografía posterior al trabajo municipal">` : ''}${r.closure ? `<p><strong>Informe técnico:</strong> ${esc(r.closure.text)}</p><p><strong>Cuadrilla:</strong> ${esc(r.closure.crew)} · ${r.closure.days} días hábiles</p>` : ''}<div class="modal-kpis"><span><strong>${r.supportCount}</strong> apoyos</span><span><strong>${esc(r.priority)}</strong> prioridad</span><button class="button button-outline button-small" id="supportBtn">¡Yo también lo vi! +1</button></div><div class="modal-map" id="publicDetailMap"></div><h3>Historia de atención</h3>${r.history.map(h => `<div class="timeline-item"><strong>${esc(human(h.status))}</strong><small>${dateTime(h.date)} · ${esc(h.comment)}</small></div>`).join('')}`;
+      content.innerHTML = `<span class="eyebrow">SEGUIMIENTO CIUDADANO</span><h2 class="modal-title" id="detailTitle">${esc(r.category)}</h2><p class="modal-subtitle">${esc(r.folio)} · Reportado el ${dateTime(r.createdAt)}</p><span class="status-badge status-${esc(r.status)}">${sym(r.status)} ${esc(human(r.status))}</span><p>${esc(r.description)}</p>${r.before ? `<img class="modal-photo" src="${r.before}" alt="Evidencia inicial del reporte">` : ''}${r.after ? `<h3>Trabajo realizado</h3><img class="modal-photo" src="${r.after}" alt="Fotografía posterior al trabajo municipal">` : ''}${r.closure ? `<p><strong>Informe técnico:</strong> ${esc(r.closure.text)}</p><p><strong>Cuadrilla:</strong> ${esc(r.closure.crew)} · ${r.closure.days} ${r.closure.days === 1 ? 'día hábil' : 'días hábiles'}</p>` : ''}<div class="modal-kpis"><span><strong>${r.supportCount}</strong> ${r.supportCount === 1 ? 'apoyo' : 'apoyos'}</span><span><strong>${esc(r.priority)}</strong> prioridad</span><button class="button button-outline button-small" id="supportBtn">¡Yo también lo vi! +1</button></div><div class="modal-map" id="publicDetailMap"></div><h3>Historia de atención</h3>${r.history.map(h => `<div class="timeline-item"><strong>${esc(human(h.status))}</strong><small>${dateTime(h.date)} · ${esc(h.comment)}</small></div>`).join('')}`;
     }
     $('#detailModal')?.classList.remove('hidden');
     const supportBtn = $('#supportBtn');
@@ -818,7 +818,7 @@ function renderAdminRows(): void {
     list
       .map(r => {
         const age = workingDaysBetween(r.createdAt, new Date(), holidays);
-        return `<tr><td><input type="checkbox" class="case-select" value="${esc(r.id)}" aria-label="Seleccionar ${esc(r.folio)}"></td><td><strong>${esc(r.folio)}</strong><small>${dateFmt(r.createdAt)}</small></td><td><strong>${esc(r.category)}</strong><small>${esc(r.description.slice(0, 62))}${r.description.length > 62 ? '…' : ''}</small></td><td><span class="status-badge status-${esc(r.status)}">${esc(human(r.status))}</span></td><td>${esc(r.department || 'Sin asignar')}</td><td class="${age >= 5 ? 'sla-bad' : age >= 3 ? 'sla-warn' : 'sla-good'}">${age} días</td><td><span class="priority-badge">${esc(r.priority)}</span></td><td><button class="row-action" data-open-admin="${esc(r.id)}">Abrir caso</button></td></tr>`;
+        return `<tr><td><input type="checkbox" class="case-select" value="${esc(r.id)}" aria-label="Seleccionar ${esc(r.folio)}"></td><td><strong>${esc(r.folio)}</strong><small>${dateFmt(r.createdAt)}</small></td><td><strong>${esc(r.category)}</strong><small>${esc(r.description.slice(0, 62))}${r.description.length > 62 ? '…' : ''}</small></td><td><span class="status-badge status-${esc(r.status)}">${esc(human(r.status))}</span></td><td>${esc(r.department || 'Sin asignar')}</td><td class="${age >= 5 ? 'sla-bad' : age >= 3 ? 'sla-warn' : 'sla-good'}">${age} ${age === 1 ? 'día' : 'días'}</td><td><span class="priority-badge">${esc(r.priority)}</span></td><td><button class="row-action" data-open-admin="${esc(r.id)}">Abrir caso</button></td></tr>`;
       })
       .join('') || '<tr><td colspan="8">No hay reportes en esta bandeja.</td></tr>';
 
@@ -831,7 +831,7 @@ function renderAdminRows(): void {
   const sync = (): void => {
     const n = $$<HTMLInputElement>('.case-select:checked').length;
     const bulkCount = $('#bulkCount');
-    if (bulkCount) bulkCount.textContent = `${n} seleccionados`;
+    if (bulkCount) bulkCount.textContent = `${n} ${n === 1 ? 'seleccionado' : 'seleccionados'}`;
     const bulkBtn = $<HTMLButtonElement>('#bulkAssign');
     if (bulkBtn) bulkBtn.disabled = !n;
   };
@@ -863,7 +863,7 @@ function renderAdminRows(): void {
             comment: 'Asignación masiva revisada y derivada al departamento municipal responsable.',
           }),
         });
-        toast(`${ids.length} casos asignados en una operación`);
+        toast(`${ids.length} ${ids.length === 1 ? 'caso asignado' : 'casos asignados'} en una operación`);
         await refreshAdmin();
       } catch (err) {
         toast(err instanceof Error ? err.message : 'Error en asignación por lotes.');
@@ -942,8 +942,17 @@ function openAdminDetail(id0: string): void {
   const next = allowed[r.status] ?? [];
   const canClose = r.status === 'EN_TERRENO' && ['INSPECTOR_DEPTO', 'ADMIN_MUNICIPAL'].includes(currentUser.role);
   closurePhotoData = null;
+  const contactHeader = [
+    r.citizen?.name || 'Vecino (registro semilla)',
+    r.citizen?.rut ? `RUT ${r.citizen.rut}` : 'Sin RUT asociado',
+  ].join(' · ');
+  const contactDetail = [
+    r.citizen?.email || 'Sin correo registrado',
+    r.citizen?.phone || 'Sin teléfono registrado',
+  ].join(' · ');
+  const supportLabel = `${r.supportCount} ${r.supportCount === 1 ? 'apoyo' : 'apoyos'}`;
 
-  detailContainer.innerHTML = `<div class="card detail-view" id="detail-${esc(r.id)}"><div style="padding:16px 17px 0;display:flex;justify-content:space-between"><div><span class="eyebrow">EXPEDIENTE MUNICIPAL</span><h2 style="font:700 16px var(--display);margin:4px 0">${esc(r.category)} <span style="font-size:10px;color:#84918b">${esc(r.folio)}</span></h2></div><button class="row-action" id="closeAdminDetail">Cerrar</button></div><div class="detail-row" style="padding:0 17px"><div class="detail-section"><h3>Descripción y ubicación</h3><p>${esc(r.description)}</p><p>${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} · ${r.supportCount} apoyos</p>${r.before ? `<img src="${r.before}" alt="Foto inicial" style="width:100%;max-height:150px;object-fit:cover;border-radius:5px">` : ''}</div><div class="detail-section"><h3>Datos de contacto (uso municipal)</h3><p>${esc(r.citizen?.name)} · RUT ${esc(r.citizen?.rut)}</p><p>${esc(r.citizen?.email)} · ${esc(r.citizen?.phone || 'sin teléfono')}</p></div></div><div class="detail-row" style="padding:0 17px"><div class="detail-section"><h3>Historial de auditoría</h3>${r.history.map(h => `<div class="timeline-item"><strong>${esc(human(h.status))}</strong><small>${dateTime(h.date)} · ${esc(h.comment)}</small></div>`).join('')}</div><div class="detail-section"><h3>Registrar gestión</h3>${next.length ? `<label>Próximo estado<select id="nextStatus"><option value="">Selecciona acción</option>${next.map(s => `<option value="${s}">${human(s)}</option>`).join('')}</select></label>` : '<p>Este caso no admite nuevas transiciones.</p>'}<label>Departamento<select id="nextDepartment">${DEPARTMENTS.map(d => `<option ${d === r.department ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select></label><label>Comentario de auditoría<textarea id="transitionComment" rows="3" placeholder="Motivo o detalle de la acción"></textarea></label><button class="button button-dark button-small" id="saveTransition">Guardar gestión</button></div></div>${canClose ? `<div class="detail-section" style="margin:0 17px 16px"><h3>Cierre técnico verificado</h3><label>Informe técnico (mínimo 50 caracteres)<textarea id="closureText" rows="3" maxlength="2000" placeholder="Describe el trabajo realizado, materiales y resultado…"></textarea><span id="closureCount" class="field-meta">0 / 50 mínimo</span></label><label>Cuadrilla ejecutora<input id="closureCrew" placeholder="Cuadrilla de Operaciones"></label><label>Fotografía posterior (máx. 5 MB)<input id="closurePhoto" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="closurePreview"></div><button class="button button-primary button-small" id="closeCase">Confirmar resolución</button><p id="closeError" class="field-error"></p></div>` : ''}</div>`;
+  detailContainer.innerHTML = `<div class="card detail-view" id="detail-${esc(r.id)}"><div style="padding:16px 17px 0;display:flex;justify-content:space-between"><div><span class="eyebrow">EXPEDIENTE MUNICIPAL</span><h2 style="font:700 16px var(--display);margin:4px 0">${esc(r.category)} <span style="font-size:10px;color:#84918b">${esc(r.folio)}</span></h2></div><button class="row-action" id="closeAdminDetail">Cerrar</button></div><div class="detail-row" style="padding:0 17px"><div class="detail-section"><h3>Descripción y ubicación</h3><p>${esc(r.description)}</p><p>${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} · ${supportLabel}</p>${r.before ? `<img src="${r.before}" alt="Foto inicial" style="width:100%;max-height:150px;object-fit:cover;border-radius:5px">` : ''}</div><div class="detail-section"><h3>Datos de contacto (uso municipal)</h3><p>${esc(contactHeader)}</p><p>${esc(contactDetail)}</p></div></div><div class="detail-row" style="padding:0 17px"><div class="detail-section"><h3>Historial de auditoría</h3>${r.history.map(h => `<div class="timeline-item"><strong>${esc(human(h.status))}</strong><small>${dateTime(h.date)} · ${esc(h.comment)}</small></div>`).join('')}</div><div class="detail-section"><h3>Registrar gestión</h3>${next.length ? `<label>Próximo estado<select id="nextStatus"><option value="">Selecciona acción</option>${next.map(s => `<option value="${s}">${human(s)}</option>`).join('')}</select></label>` : '<p>Este caso no admite nuevas transiciones.</p>'}<label>Departamento<select id="nextDepartment">${DEPARTMENTS.map(d => `<option ${d === r.department ? 'selected' : ''}>${esc(d)}</option>`).join('')}</select></label><label>Comentario de auditoría<textarea id="transitionComment" rows="3" placeholder="Motivo o detalle de la acción"></textarea></label><button class="button button-dark button-small" id="saveTransition">Guardar gestión</button></div></div>${canClose ? `<div class="detail-section" style="margin:0 17px 16px"><h3>Cierre técnico verificado</h3><label>Informe técnico (mínimo 50 caracteres)<textarea id="closureText" rows="3" maxlength="2000" placeholder="Describe el trabajo realizado, materiales y resultado…"></textarea><span id="closureCount" class="field-meta">0 / 50 mínimo</span></label><label>Cuadrilla ejecutora<input id="closureCrew" placeholder="Cuadrilla de Operaciones"></label><label>Fotografía posterior (máx. 5 MB)<input id="closurePhoto" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="closurePreview"></div><button class="button button-primary button-small" id="closeCase">Confirmar resolución</button><p id="closeError" class="field-error"></p></div>` : ''}</div>`;
 
   const closeBtn = $('#closeAdminDetail');
   if (closeBtn) closeBtn.onclick = () => { detailContainer.innerHTML = ''; };
@@ -1501,21 +1510,6 @@ function bind(): void {
   if (loginForm) loginForm.onsubmit = login;
   const logoutBtn = $('#logout');
   if (logoutBtn) logoutBtn.onclick = () => logout();
-  const demoMap: Record<string, readonly [string, string]> = {
-    mesa: ['mesa@reporta.local', 'Mesa2026!'],
-    inspector: ['inspector@reporta.local', 'Inspector2026!'],
-    admin: ['admin@reporta.local', 'Admin2026!'],
-  };
-  $$('[data-demo]').forEach(b => {
-    b.onclick = () => {
-      const creds = b.dataset.demo ? demoMap[b.dataset.demo] : undefined;
-      if (!creds) return;
-      const emailInput = $<HTMLInputElement>('#loginEmail');
-      const passInput = $<HTMLInputElement>('#loginPassword');
-      if (emailInput) emailInput.value = creds[0];
-      if (passInput) passInput.value = creds[1];
-    };
-  });
   const adminStFilter = $<HTMLSelectElement>('#adminStatusFilter');
   if (adminStFilter) adminStFilter.onchange = renderAdminRows;
   const adminCatFilter = $<HTMLSelectElement>('#adminCategoryFilter');
