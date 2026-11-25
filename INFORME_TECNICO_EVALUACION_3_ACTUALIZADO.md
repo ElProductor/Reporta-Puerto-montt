@@ -20,11 +20,11 @@ Evaluación Sumativa Unidad 3 — Ponderación: 35% de la Calificación Final
 
 **Docente Guía:** Prof. José Alfredo Jara
 
-**Estándares Técnicos y Marco Normativo de Referencia:**  
+**Estándares Técnicos y Marco Normativo de Referencia (Controles Técnicos Alineados):**  
 ISO/IEC/IEEE 29148:2018 · Notación UML 2.5 · W3C WCAG 2.1 Nivel AA (controles parciales) · OWASP Top 10:2021 · Ley N° 18.695 · Ley N° 19.628 · Ley N° 21.719 · Ley N° 20.285 · Ley N° 21.663
 
 **Identificación de Configuración y Control de Versiones:**  
-Repositorio Oficial: <https://github.com/ElProductor/Reporta-Puerto-montt.git> · Paquete: `reporta-puerto-montt` · Versión: `1.0.0` (`package.json`)
+Repositorio Oficial: <https://github.com/ElProductor/Reporta-Puerto-montt.git> · Paquete: `reporta-puerto-montt` · Versión: `1.0.0` (`package.json`) · Etiqueta de entrega: `v1.0.0-eval3` (rama `main`)
 
 **Localización y Fecha de Entrega:**  
 Puerto Montt, Región de Los Lagos, República de Chile — Noviembre de 2026
@@ -79,7 +79,7 @@ Puerto Montt, Región de Los Lagos, República de Chile — Noviembre de 2026
 
 ### 1.1 Síntesis arquitectónica del sistema y objetivos operacionales vigentes
 
-> **Síntesis Ejecutiva para Evaluación:** El prototipo `reporta-puerto-montt` (`v1.0.0`) implementa de punta a punta el **Portal Ciudadano PWA** (`/app` en React 19 + TS estricto), la **Consola Municipal** (`/admin` + instalador Windows Electron NSIS en TS estricto) y la **API HTTP + Dominio/Repository** (`node:http` + `JsonFileRepository` en `schemaVersion: 3`). Todo el código propio compila sin errores (`0` en `npm run typecheck`), aprueba **43/43** pruebas automatizadas (`npm test`), registra latencia local **P95 = 348,2 ms** (`npm run perf`), presenta **0 vulnerabilidades en dependencias de producción** (`npm audit --omit=dev`) y mantiene delimitadas con transparencia las integraciones externas pendientes para Fase 2 (PostgreSQL/Supabase, ClaveÚnica, SMTP/Push, shapefile oficial y auditoría externa).
+> **Síntesis Ejecutiva para Evaluación:** El prototipo `reporta-puerto-montt` (`v1.0.0`, etiqueta Git `v1.0.0-eval3`) implementa de punta a punta el **Portal Ciudadano PWA** (`/app` en React 19 + TS estricto), la **Consola Municipal** (`/admin` + instalador Windows Electron NSIS en TS estricto) y la **API HTTP + Dominio/Repository** (`node:http` + `JsonFileRepository` en `schemaVersion: 3`). Todo el código propio compila sin errores (`0` en `npm run typecheck`), aprueba **46/46** pruebas automatizadas (`npm test`, incluyendo concurrencia, recuperación ante fallos y respaldo/restauración), registra latencia local **P95 = 348,2 ms** (`npm run perf`), presenta **0 vulnerabilidades en dependencias de producción** (`npm audit --omit=dev`) y mantiene delimitadas con transparencia las integraciones externas pendientes para Fase 2 (PostgreSQL/Supabase, ClaveÚnica, SMTP/Push, shapefile oficial y auditoría externa).
 
 El sistema **Reporta Puerto Montt** (`reporta-puerto-montt`, versión `1.0.0`) es una plataforma cívica local diseñada para canalizar reportes ciudadanos geolocalizados, conversación vecinal moderada y gestión municipal de incidencias en la comuna de Puerto Montt. Todo el código fuente propio de dominio, servidor, persistencia y ambos clientes se encuentra implementado en **TypeScript estricto** (`tsconfig.json` y `tsconfig.server.json`), organizado en tres subsistemas dentro de un único paquete Node.js:
 
@@ -170,9 +170,10 @@ Para construir y endurecer el prototipo se utilizaron como línea base los 16 Re
 **Secuencia exacta de comandos verificada en el repositorio:**
 
 ```powershell
-# 0. Clonar el repositorio oficial
+# 0. Clonar el repositorio oficial y posicionarse en la versión exacta de este informe
 git clone https://github.com/ElProductor/Reporta-Puerto-montt.git
 cd Reporta-Puerto-montt
+git checkout v1.0.0-eval3
 
 # 1. Instalar dependencias locales
 npm install
@@ -180,7 +181,7 @@ npm install
 # 2. Verificar tipado estricto TypeScript (cliente/dominio y servidor/repository)
 npm run typecheck
 
-# 3. Compilar dominio/servidor/bundles y ejecutar las 43 pruebas automatizadas
+# 3. Compilar dominio/servidor/bundles y ejecutar las 46 pruebas automatizadas
 npm test
 
 # 4. Ejecutar benchmark local de rendimiento (1.000 registros, 50 clientes paralelos)
@@ -195,6 +196,13 @@ npm start
 ```
 
 También se dispone del lanzador rápido [Iniciar Reporta Puerto Montt.bat](file:///c:/Users/juanp/Documents/Codex/2026-11-17/ne/outputs/reporta-puerto-montt-entrega-actualizada/Iniciar%20Reporta%20Puerto%20Montt.bat) para iniciar el servicio en Windows.
+
+#### Instalación y ejecución del ejecutable de escritorio Electron (`.exe`)
+
+1. **Ubicación del instalador:** El paquete NSIS generado por `npm run desktop:dist` se encuentra en `release-final/Reporta-Puerto-Montt-Admin-1.0.0-Setup.exe` (y se adjunta como artefacto de entrega independiente al repositorio Git, dado su tamaño binario).
+2. **Instalación en Windows 10/11 (64 bits):** Ejecutar `Reporta-Puerto-Montt-Admin-1.0.0-Setup.exe`. Al tratarse de un ejecutable académico sin certificado comercial de firma de código, Windows SmartScreen puede mostrar advertencia de editor desconocido; seleccionar *"Más información" → "Ejecutar de todas formas"*.
+3. **Ejecución autónoma:** Al abrir *"Reporta Puerto Montt Municipal"* desde el menú Inicio o acceso directo, Electron (`desktop/main.cjs`) inicia automáticamente el backend local compilado (`reporta-backend/server.js`) en un puerto libre de `127.0.0.1`, almacena los datos y el secreto criptográfico aleatorio (`.auth-secret`) en `%APPDATA%\Reporta Puerto Montt Municipal\` y abre la Consola Municipal aislada (`contextIsolation: true`, `sandbox: true`).
+4. **Cuentas de prueba locales:** El proceso de arranque inicializa el catálogo de personal en `db.json` protegido con `bcryptjs` (costo 12); para rotar o definir claves locales de evaluación, seguir el procedimiento del **Anexo A**.
 
 ---
 
@@ -389,7 +397,7 @@ public persist(state: DatabaseState): Promise<void> {
 
 1. **Portal Ciudadano (`/app`, React 19 + TS estricto):**
    - Cinco vistas (`Mapa`, `Muro vecinal`, `Reportar`, `Mi cuenta`, `Seguimiento`), estado de conexión (`En línea` / `Sin conexión`) e instalación PWA.
-   - **Accesibilidad verificable (`tests/accessibility.test.cjs`):** contraste ≥ `4,5:1` contra blanco (`public/styles.css`), `:focus-visible` (`outline: 3px`), controles táctiles `min-height: 48px` y `@media (prefers-reduced-motion: reduce)` (`public/citizen-react.css`). **No cuenta con auditoría WCAG 2.1 AA completa independiente.**
+   - **Accesibilidad y usabilidad verificables:** `tests/accessibility.test.cjs` valida contraste ≥ `4,5:1` contra blanco (`public/styles.css`), `:focus-visible` (`outline: 3px`), controles táctiles `min-height: 48px` y `@media (prefers-reduced-motion: reduce)` (`public/citizen-react.css`). Adicionalmente, la inspección automatizada del DOM renderizado en Chrome confirmó `30/30` imágenes con atributo `alt`, `0` botones sin etiqueta accesible en `/admin` (`56/56`) y `0` desbordamiento horizontal en vista móvil `375×812 px` (`scrollWidth = clientWidth = 375`). **Brecha declarada:** no se ha ejecutado aún una sesión de pruebas de usabilidad y accesibilidad con **usuarios reales externos** (escala SUS, tareas cronometradas y lectores de pantalla NVDA/JAWS) ni una auditoría independiente WCAG 2.1 AA.
 2. **Panel Municipal (`/admin` y Electron, TypeScript estricto → `public/app.js`):**
    - Login RBAC, bandeja con filtros, selección múltiple por lotes, semáforo SLA hábil, expediente con transiciones y cierre técnico, gráficos `Chart.js`, capa térmica radial Canvas (`src/admin/heatmap.ts`), moderación de comentarios y verificación institucional.
 3. **Rendimiento medido localmente en esta sesión (`tests/performance.cjs`):**
@@ -400,6 +408,8 @@ public persist(state: DatabaseState): Promise<void> {
 ### 5.2 Estructura relacional normalizada (`schemaVersion: 3`), tablas y evidencia JSON
 
 La clase `JsonFileRepository` (`src/repository.ts`) persiste `data/db.json` bajo `schemaVersion: 3` con **10 tablas normalizadas vinculadas por ID y llaves foráneas**: `reports`, `citizens`, `reporters` (tabla de migración heredada), `staff`, `supporters` (almacena únicamente `{ reportId, rutHash }` con `rutHash` HMAC-SHA256 de 64 hex), `events`, `reportComments`, `reportMedia`, `notifications` y `verificationRequests`.
+
+> **Precisión técnica fundamental (JSON local vs. SGBD relacional ACID):** Aunque `data/db.json` organiza la información en 10 colecciones normalizadas en 3FN para facilitar la migración futura, **un almacén basado en archivos JSON no equivale a la implementación de una base de datos relacional (SGBD) con integridad referencial declarativa aplicada por motor (`FOREIGN KEY` / `CHECK` / `UNIQUE`) ni garantiza propiedades transaccionales ACID completas** (*Atomicity, Consistency, Isolation, Durability*) frente a escrituras concurrentes multiproceso o cortes abruptos de hardware. En el prototipo actual, `JsonFileRepository` resuelve la consistencia mononodo mediante serialización en memoria y escritura atómica temporal + `rename`, quedando la adopción de PostgreSQL/Supabase (`PostgresReportRepository`) definida para la Fase 2 productiva.
 
 **Justificación explícita de diseño relacional (3FN y desnormalizaciones controladas):**
 - **`citizens` vs. `reporters` y llave foránea polimórfica en Fase 2 PostgreSQL:** Todos los reportes creados bajo el flujo vigente (`HAL-02`) enlazan `reports.reporterId` directamente con `citizens.id`, reservando la tabla `reporters` exclusivamente para casos heredados migrados desde `v1`/`v2` sin cuenta ciudadana previa (`legacy-<sha256>`). Aunque el repositorio JSON local resuelve `reporterId -> citizens.id | reporters.id` mediante búsqueda en memoria, el adaptador **`PostgresReportRepository` (Fase 2)** resolverá esta relación sin violar la integridad referencial SQL mediante **dos llaves foráneas anulables** (`citizen_id REFERENCES citizens(id)` y `legacy_reporter_id REFERENCES reporters(id)` con restricción `CHECK` de exclusión mutua) o mediante migración previa de registros heredados, y `reportMedia` adoptará clave primaria subrogada (`id UUID/SERIAL`) en PostgreSQL.
@@ -452,7 +462,15 @@ La clase `JsonFileRepository` (`src/repository.ts`) persiste `data/db.json` bajo
 
 ### 6.1 Activos de datos tratados, riesgos de confidencialidad y marco jurídico chileno aplicable
 
-El sistema separa tres clases de información: (1) **datos personales ciudadanos (PII)** en `citizens`/`reporters`, (2) **credenciales y auditoría municipal** en `staff`/`events`, y (3) **información pública urbana** en `publicReport()`. Esta arquitectura aplica el principio de minimización y reserva de la **Ley N° 19.628** y **Ley N° 21.719**, junto con el principio de divisibilidad de la **Ley N° 20.285** (publicando el avance, fotos antes/después e informe técnico sin exponer RUT, nombre ni contacto del vecino, y sanitizando comentarios del historial público con `publicHistoryComment`), en coherencia con la **Ley N° 21.663** y la **Ley N° 18.695**. *No sustituye un dictamen jurídico ni auditoría formal externa.*
+El sistema separa tres clases de información: (1) **datos personales ciudadanos (PII)** en `citizens`/`reporters`, (2) **credenciales y auditoría municipal** en `staff`/`events`, y (3) **información pública urbana** en `publicReport()`.
+
+| Activo de Datos | Riesgo de Privacidad y Exposición | Controles Técnicos Implementados | Mitigación Pendiente (Fase 2) |
+| --- | --- | --- | --- |
+| **Fotografías y videos** (`reportMedia`, `before`, `after`) | Captura involuntaria de rostros, patentes vehiculares, fachadas identificables o **metadatos EXIF** (coordenadas GPS exactas, modelo de dispositivo y fecha/hora). | Validación binaria de Magic Bytes (`JPG`/`PNG`/`WebP`/`MP4`/`WebM`), límite de `5 MB` y publicación controlada por moderación municipal. | Incorporar limpieza automática de metadatos **EXIF** al ingestar imágenes en servidor y difuminado/revisión previa de rostros y patentes. |
+| **Coordenadas geográficas** (`lat`, `lng`) | Reidentificación indirecta del domicilio del denunciante cuando el reporte se origina frente a su vivienda particular. | `publicReport()` omite toda identidad del denunciante (`citizen`, `rut`, `email`, `phone`), mostrando solo el punto de incidencia urbana y categoría. | Aplicar redondeo o desplazamiento aleatorio acotado (*geoprivacy jitter*) en reportes sensibles si la política municipal lo requiere. |
+| **Registros ciudadanos y apoyos** (`citizens`, `supporters`, `verificationRequests`) | Filtración de RUT, correo, historial de denuncias o correlación de adherentes vecinales. | `bcryptjs` costo `12`, `rutHash` HMAC-SHA256 de 64 hex en `supporters`, sesión ciudadana obligatoria, sanitización anti-PII en comentarios (`CP-12`) y supresión de PII en vistas públicas (`CP-09`). | Cifrado en reposo a nivel de motor SQL/disco, políticas de retención/supresión (derechos ARCO) y cifrado TLS/HTTPS institucional. |
+
+**Alcance normativo vs. cumplimiento jurídico integral:** Los controles anteriores se encuentran **técnicamente alineados** con los principios de minimización y reserva de las **Leyes N° 19.628 y N° 21.719**, divisibilidad de la **Ley N° 20.285**, participación ciudadana de la **Ley N° 20.500**, competencias de la **Ley N° 18.695**, interoperabilidad de la **Ley N° 21.180** y gestión de incidentes de la **Ley N° 21.663**. *Sin embargo, la implementación de controles técnicos en un prototipo local **no equivale a una certificación ni a un cumplimiento jurídico integral**, el cual requiere validación por un Delegado de Protección de Datos (DPO), políticas institucionales vigentes, infraestructura HTTPS/SQL auditada y dictamen legal municipal.*
 
 ---
 
@@ -490,7 +508,8 @@ El sistema separa tres clases de información: (1) **datos personales ciudadanos
 Todas las verificaciones se ejecutaron en el entorno local Windows (Node.js v24.12.0) tras la última edición del código, utilizando datos sintéticos aislados en directorios temporales (`mkdtemp`) y compilando previamente `tsc` y `esbuild`:
 
 - **`npm run typecheck`:** Aprobado con **0 errores** en `tsconfig.json` (portal ciudadano, panel municipal, capa térmica, dominio) y `tsconfig.server.json` (servidor HTTP, repositorio, dominio).
-- **`npm test`:** **43/43 pruebas aprobadas** (`0` fallidas, `0` omitidas): **32** pruebas HTTP (`CP-01` a `CP-32` en `tests/api.test.cjs`), **6** unitarias de dominio (`tests/domain.test.cjs`), **2** de accesibilidad CSS (`tests/accessibility.test.cjs`), **1** de aislamiento criptográfico (`tests/auth-secret.test.cjs`), **1** de shell/caché offline (`tests/offline.test.cjs`) y **1** de semilla urbana e historial multi-evento (`tests/seed.test.cjs`).
+- **`npm test`:** **46/46 pruebas aprobadas** (`0` fallidas, `0` omitidas): **32** pruebas HTTP (`CP-01` a `CP-32` en `tests/api.test.cjs`), **3** de concurrencia, recuperación ante fallos y respaldo/restauración (`CP-33` a `CP-35` en `tests/resilience.test.cjs`), **6** unitarias de dominio (`tests/domain.test.cjs`), **2** de accesibilidad CSS (`tests/accessibility.test.cjs`), **1** de aislamiento criptográfico (`tests/auth-secret.test.cjs`), **1** de shell/caché offline (`tests/offline.test.cjs`) y **1** de semilla urbana e historial multi-evento (`tests/seed.test.cjs`).
+- **Auditoría automatizada de DOM y diseño responsivo en Chrome real + protocolo pendiente con usuarios:** La inspección sobre `/app` y `/admin` renderizados verificó `30/30` imágenes con `alt`, `56/56` botones etiquetados en `/admin` y `0` desbordamiento horizontal en móvil `375×812 px` (`scrollWidth = clientWidth = 375`). Queda definido y **pendiente para piloto municipal** el protocolo de pruebas presenciales con usuarios reales (cuestionario SUS, 5 tareas guiadas cronometradas y recorrido con lector de pantalla NVDA/JAWS).
 - **`npm run perf`:** **Aprobado** (`P95 = 348,2 ms`, `media = 200,9 ms`, umbral `< 1.500 ms` sobre `1.000` registros y `50` clientes paralelos; Evidencia `EV-03`, Captura B.2).
 - **`npm run desktop:dist` + `node tests/packaged-smoke.cjs`:** Instalador Windows generado en `release-final/Reporta-Puerto-Montt-Admin-1.0.0-Setup.exe`, ventana nativa verificada y smoke test empaquetado **aprobado** (Capturas B.2 y B.14).
 - **`./verify.ps1`:** Ejecutado contra instancia local en puerto `3001`, con todas las aserciones PowerShell aprobadas (`12/12 PASS`, Captura B.2).
@@ -537,8 +556,12 @@ Todas las verificaciones se ejecutaron en el entorno local Windows (Node.js v24.
 | **CP-30** / `RF-11`, `HAL-08` | Inspeccionar `/app.js` y enviar `POST /api/admin/reports/:id/close` solo con `photo` válida y nota ≥ 50 chars. | Sin `useManualCoords).onclick` roto; incluye `media` en bundle y servidor acepta `photo` sin `media` duplicado. | Bundle limpio y cierre completado a `RESUELTO` (`200 OK`). | **Aprobado** / `EV-02`, `EV-05`, `HAL-08` |
 | **CP-31** / `RF-02`, `RES-01` *(Neg.)* | Consultar `GET /api/meta` y enviar `POST /api/reports` en `(-41.63, -73.22)` (dentro del BBox rectangular pero fuera de `PUERTO_MONTT_POLYGON`). | Polígono `>= 10` vértices expuesto y rechazo HTTP `400` por algoritmo *Ray-Casting*. | API rechaza la coordenada con estado `400` (`/límite comunal/`). | **Aprobado** / `EV-02`, `EV-04`, `HAL-07` |
 | **CP-32** / `RF-15`, `RF-16`, `HAL-09` | Inspeccionar `/admin` y `/app.js` en busca de claves demo y consultar `metrics.heat`. | Sin atributos `data-demo` ni claves hardcodeadas; bundle expone `leaflet-heatmap-layer` + `createRadialGradient` y `metrics.heat` no vacío. | 0 credenciales expuestas en bundle y `metrics.heat` validado (`200 OK`). | **Aprobado** / `EV-02`, `EV-05`, `HAL-09` |
+| **CP-33** / `RNF-05` *(Concurrencia)* | Ejecutar `10` peticiones paralelas `POST /api/reports` y reiniciar el servidor (`tests/resilience.test.cjs`). | `10/10` folios únicos, JSON íntegro y persistencia completa tras reinicio. | `10` reportes creados (`201`), folios únicos y `db.json` válido tras reiniciar. | **Aprobado** / `EV-02` |
+| **CP-34** / `RNF-05` *(Recuperación)* | Simular caída dejando `db.json.tmp` truncado junto a `db.json` válido y reiniciar (`tests/resilience.test.cjs`). | Servidor ignora `.tmp` truncado, conserva registros previos y permite nuevas escrituras. | Folio previo recuperado (`200`) y nueva escritura post-fallo exitosa (`201`). | **Aprobado** / `EV-02` |
+| **CP-35** / `RNF-05`, `RNF-06` *(Respaldo)* | Respaldar `db.json`, mutar estado con nuevo reporte, restaurar respaldo y reiniciar (`tests/resilience.test.cjs`). | Conteo exacto previo restaurado y reporte posterior ausente (`404`). | Snapshot previo restaurado al 100% y reporte mutado eliminado (`404`). | **Aprobado** / `EV-02` |
 
-**Suites complementarias verificadas (11 pruebas unitarias/estáticas/semilla + rendimiento + paquete + PowerShell):**
+**Suites complementarias verificadas (14 pruebas unitarias/estáticas/resiliencia/semilla + rendimiento + paquete + PowerShell):**
+- `tests/resilience.test.cjs` (**3/3 aprobadas**, `CP-33` a `CP-35`): escritura concurrente, recuperación ante `.tmp` truncado y respaldo/restauración de `db.json`.
 - `tests/domain.test.cjs` (**6/6 aprobadas**): incluye validación de polígono comunal excluyendo mar abierto/cordillera dentro del viejo BBox.
 - `tests/accessibility.test.cjs` (**2/2 aprobadas**), `tests/auth-secret.test.cjs` (**1/1 aprobada**), `tests/offline.test.cjs` (**1/1 aprobada**).
 - `tests/seed.test.cjs` (**1/1 aprobada**): valida arranque limpio verificando que los 50 casos semilla quedan en tierra firme urbana dentro de `PUERTO_MONTT_POLYGON` y con trazabilidad cronológica multi-evento (`> 50` eventos en `events`).
@@ -548,26 +571,38 @@ Todas las verificaciones se ejecutaron en el entorno local Windows (Node.js v24.
 
 ## 8. Defectos, endurecimiento técnico y nuevas pruebas
 
-### 8.1 Registro de hallazgos y defectos corregidos en el prototipo (`HAL-01` a `HAL-10`)
+### 8.1 Registro de hallazgos, defectos corregidos (`HAL-01` a `HAL-10`) e incidencias abiertas
 
-| ID | Severidad | Hallazgo / Defecto Detectado | Corrección Implementada en Código | Prueba / Reprueba | Estado |
+| ID | Prioridad / Criticidad | Comportamiento Antes (Defecto) | Corrección y Comportamiento Después | Prueba / Evidencia | Estado |
 | --- | --- | --- | --- | --- | --- |
-| **HAL-01** | **Crítica** | Secreto de sesión compartido por defecto en entorno local. | `loadAuthSecret()` en `src/server.ts` genera `.auth-secret` aleatorio por instalación (`0o600`) o exige `JWT_SECRET >= 32` chars. | `tests/auth-secret.test.cjs` | **v1 · Cerrado** |
-| **HAL-02** | **Crítica** | Reportes/apoyos sin sesión ciudadana obligatoria ni hashing de RUTs adherentes. | Sesión ciudadana obligatoria derivada del token; `supporters` almacena `rutHash` HMAC-SHA256 (`PII_HASH_SECRET`). | `CP-20`, `CP-24` | **v1 · Cerrado** |
-| **HAL-03** | **Alta** | Persistencia JSON sin normalización relacional. | `JsonFileRepository` (`src/repository.ts`) con 10 tablas normalizadas (`schemaVersion: 3`) y escritura atómica temporal + `rename`. | `CP-05`, `CP-24` | **v1 · Cerrado** |
-| **HAL-04** | **Alta** | Portal ciudadano sin PWA TS independiente ni buzón privado. | `src/citizen/main.tsx` (React 19 + TS estricto), buzón `/api/citizens/notifications` y `public/sw.js` con caché acotado. | `CP-02`, `CP-24`, `tests/offline.test.cjs` | **v1 · Cerrado** |
-| **HAL-05** | **Alta** | Asignación por lotes sin prevalidación integral ni rollback. | Prevalidación del lote completo en `POST /api/admin/reports/batch` con rollback en memoria en caso de error. | `CP-21`, `CP-22`, `CP-23` | **v1 · Cerrado** |
-| **HAL-06** | **Media** | SLA sin feriados configurables y validación parcial de medios. | Feriados configurables (`data/feriados.json` / `REPORTA_HOLIDAYS`), Magic Bytes en fotos/videos y `validateCloseGate`. | `CP-26`, `CP-29`, `verify.ps1` | **v1 · Cerrado** |
-| **HAL-07** | **Alta** | Stack mixto JS/TS en servidor y panel `/admin`, BBox rectangular y mapa de calor básico con `L.circle`. | Migración completa de servidor (`src/server.ts`, `src/repository.ts`) y panel `/admin` (`src/admin/main.ts`, `src/admin/heatmap.ts`) a TypeScript estricto; polígono comunal aproximado (`PUERTO_MONTT_POLYGON`) y capa térmica radial Canvas. | `npm run typecheck`, `tests/domain.test.cjs`, `CP-31` | **v2 · Cerrado** |
-| **HAL-08** | **Crítica** | **Defectos bloqueantes en UI `/admin`:** `$('#useManualCoords').onclick` lanzaba `TypeError` al cargar `municipal.html`, y `closeCase()` omitía el arreglo `media` exigido por `/close`. | Enlaces DOM seguros opcionales en `src/admin/main.ts` (`if (useManualCoords)`), envío explícito de `media` en `closeCase()`, y compatibilidad en `src/server.ts` (`/close`) para validar `b.photo` como imagen única cuando `b.media` no se envía aparte. | `CP-30`, `node --check public/app.js`, `packaged-smoke.cjs` | **v2 · Cerrado** |
-| **HAL-09** | **Alta** | Exposición de botones `"Accesos de demostración"` y contraseñas RBAC en el bundle cliente `/app.js`. | Retiro íntegro de los botones `[data-demo]` y del diccionario `demoMap` desde `public/municipal.html` y `src/admin/main.ts`, junto al reemplazo del glifo `⌑` por SVG inline. | `CP-32`, `Captura B.11` | **v3 · Cerrado** |
-| **HAL-10** | **Alta** | Semilla con historial único (`PENDIENTE`) en casos avanzados, puntos en mar/humedal y defectos visuales en UI `/app` y `/admin`. | Generación cronológica multi-evento en `seed()`, 8 puntos urbanos terrestres dentro de `PUERTO_MONTT_POLYGON`, controles Leaflet desplazados a derecha, espaciado de pasos en `/app`, modal comparativo Antes/Después y pluralización/contacto limpios en `/admin`. | `tests/seed.test.cjs`, `Capturas B.6–B.13` | **v3 · Cerrado** |
+| **HAL-01** | **P0 / Crítica** | Secreto de sesión compartido por defecto en entorno local; permitía forjar tokens entre instalaciones. | `loadAuthSecret()` genera `.auth-secret` aleatorio (`0o600`) o exige `JWT_SECRET >= 32` chars; tokens legados rechazados (`401`). | `tests/auth-secret.test.cjs` | **v1 · Cerrado** |
+| **HAL-02** | **P0 / Crítica** | Reportes y apoyos sin sesión ciudadana obligatoria ni hashing de RUTs adherentes en `supporters`. | Sesión ciudadana obligatoria derivada del token; `supporters` persiste únicamente `rutHash` HMAC-SHA256 de 64 hex. | `CP-20`, `CP-24` | **v1 · Cerrado** |
+| **HAL-03** | **P1 / Alta** | Persistencia JSON monolítica sin separación relacional ni escritura atómica. | `JsonFileRepository` (`src/repository.ts`) con 10 tablas (`schemaVersion: 3`) y escritura `.tmp` + `rename`. | `CP-05`, `CP-33`..`CP-35` | **v1 · Cerrado** |
+| **HAL-04** | **P1 / Alta** | Portal ciudadano sin PWA TS independiente ni buzón privado de notificaciones. | `src/citizen/main.tsx` (React 19 + TS), `/api/citizens/notifications` y `public/sw.js` con caché acotado. | `CP-02`, `CP-24`, `offline.test.cjs` | **v1 · Cerrado** |
+| **HAL-05** | **P1 / Alta** | Asignación por lotes sin prevalidación integral; mutaba parcialmente ante un ID inválido. | Prevalidación completa en `POST /api/admin/reports/batch` con rollback en memoria (`0` cambios si falla un ítem). | `CP-21`, `CP-22`, `CP-23` | **v1 · Cerrado** |
+| **HAL-06** | **P2 / Media** | SLA sin feriados configurables y validación parcial de medios al cerrar reportes. | Feriados configurables (`feriados.json` / `REPORTA_HOLIDAYS`), Magic Bytes y compuerta `validateCloseGate`. | `CP-26`, `CP-29`, `verify.ps1` | **v1 · Cerrado** |
+| **HAL-07** | **P1 / Alta** | Stack mixto JS/TS en servidor y `/admin`, BBox rectangular (aceptaba mar) y mapa de calor `L.circle`. | Migración integral a TS estricto, polígono `PUERTO_MONTT_POLYGON` (rechaza mar `400`) y capa térmica radial Canvas. | `npm run typecheck`, `CP-31` | **v2 · Cerrado** |
+| **HAL-08** | **P0 / Crítica** | `$('#useManualCoords').onclick` lanzaba `TypeError` al cargar `/admin`; `closeCase()` omitía `media` bloqueando el cierre. | Enlaces DOM seguros (`if (useManualCoords)`), envío explícito de `media` y compatibilidad `b.photo` en `/close`. | `CP-30`, `packaged-smoke.cjs` | **v2 · Cerrado** |
+| **HAL-09** | **P1 / Alta** | Botones `"Accesos de demostración"` y contraseñas RBAC expuestos en `/app.js` del navegador. | Retiro completo de `[data-demo]` y `demoMap` desde `municipal.html` y `src/admin/main.ts`; glifo `⌑` pasado a SVG. | `CP-32`, `Captura B.11` | **v3 · Cerrado** |
+| **HAL-10** | **P1 / Alta** | Semilla con historial único (`PENDIENTE`) en casos resueltos, puntos en mar/humedal y superposición visual en `/app`. | Historial cronológico multi-evento en `seed()`, 8 sectores urbanos terrestres, controles Leaflet a derecha y modal Antes/Después. | `tests/seed.test.cjs`, `Capturas B.6–B.13` | **v3 · Cerrado** |
+
+**Registro de brechas e incidencias abiertas (`INC-01` a `INC-07`, diferenciadas por naturaleza):**
+
+| ID | Clasificación | Descripción de Brecha / Incidencia Abierta | Prioridad | Mitigación Vigente en Prototipo | Estado |
+| --- | --- | --- | --- | --- | --- |
+| **INC-01** | **Limitación estructural del software** | `JsonFileRepository` (`data/db.json`) no provee motor SQL relacional con `FOREIGN KEY` ni propiedades ACID multiproceso. | **P1 / Alta** | Interfaz `ReportRepository` lista para `PostgresReportRepository` + escritura atómica local probada (`CP-33`..`CP-35`). | **Abierta · Fase 2** |
+| **INC-02** | **Limitación técnica aproximada** | `PUERTO_MONTT_POLYGON` usa vértices aproximados y faltan teselas cartográficas offline autorizadas. | **P2 / Media** | Validación *Ray-Casting* operativa (`CP-31`) para sustituir por shapefile oficial SUBDERE/IDE. | **Abierta · Fase 2** |
+| **INC-03** | **Ampliación / Integración externa** | Ausencia de autenticación estatal **ClaveÚnica** (OIDC) y despacho real de **SMTP / Web Push**. | **P1 / Alta** | Registro con RUT Módulo 11, cola de verificación municipal y buzón local (`/api/citizens/notifications`). | **Abierta · Fase 2** |
+| **INC-04** | **Ampliación / Protección datos** | Falta limpieza automática de metadatos **EXIF** en imágenes y anonimización visual de rostros/patentes. | **P2 / Media** | Magic Bytes, moderación previa y supresión total de PII ciudadana en `publicReport()`. | **Abierta · Fase 2** |
+| **INC-05** | **Ampliación / Validación externa** | Pendiente sesión de usabilidad/accesibilidad con **usuarios reales** (SUS + NVDA/JAWS) y auditoría **WCAG 2.1 AA**. | **P2 / Media** | `tests/accessibility.test.cjs` + auditoría DOM/móvil Chrome (`375 px` sin overflow). | **Abierta · Fase 2** |
+| **INC-06** | **Ampliación / Certificación seguridad** | Falta firma digital de código para `.exe` NSIS y escaneo DAST/SAST externo (**OWASP ZAP / SonarQube**). | **P2 / Media** | `npm audit --omit=dev` (`0` vulns), aislamiento Electron y suite `CP-01`..`CP-35`. | **Abierta · Fase 2** |
+| **INC-07** | **Ampliación / Operación municipal** | Sin medición en terreno de KPIs reales (`OBJ-01`–`OBJ-05`: adopción 20%, ART < 5 d, ahorro 15%). | **P2 / Media** | Benchmark local (`P95 = 348,2 ms`) y panel Analítica operativo sobre datos semilla. | **Abierta · Piloto** |
 
 ---
 
 ### 8.2 Análisis de estabilidad transaccional y estado de preparación
 
-Tras las correcciones `HAL-07` a `HAL-10`, el prototipo compila íntegramente desde TypeScript estricto, aprueba las **43 pruebas automatizadas**, pasa `verify.ps1` y empaqueta correctamente el instalador Electron (`tests/packaged-smoke.cjs` aprobado). La única restricción estructural de persistencia en esta fase es que `JsonFileRepository` opera sobre un archivo JSON local por equipo y no reemplaza un motor transaccional SQL multiusuario en servidor remoto.
+Tras las correcciones `HAL-07` a `HAL-10` y la incorporación de las pruebas de resiliencia (`CP-33` a `CP-35`), el prototipo compila íntegramente desde TypeScript estricto, aprueba las **46 pruebas automatizadas**, pasa `verify.ps1` y empaqueta correctamente el instalador Electron (`tests/packaged-smoke.cjs` aprobado). Se precisa expresamente que `JsonFileRepository` (`data/db.json`) resuelve concurrencia local, recuperación ante `.tmp` truncado y respaldo/restauración en un nodo único, pero **no equivale a un SGBD relacional con integridad referencial declarativa en motor ni propiedades ACID completas** para operación multiusuario concurrente en producción (`INC-01`).
 
 ---
 
@@ -575,7 +610,15 @@ Tras las correcciones `HAL-07` a `HAL-10`, el prototipo compila íntegramente de
 
 ### 9.1 Matriz consolidada de trazabilidad real (`RF/RNF → Informe 2 / CU → Módulo → Prueba`)
 
-**Denominador de Línea Base (`N = 26` requerimientos priorizados del Informe 2: `16` Funcionales + `10` No Funcionales):** **15** requisitos cuentan con **implementación local completa verificada** (`RF-01`, `RF-03`..`RF-09`, `RF-11`, `RF-13`..`RF-15`, `RNF-08`..`RNF-10` — `57,7%`), **2** se encuentran implementados con acote técnico externo (`RF-02` polígono aproximado y `RNF-07` `.exe` sin firma digital — `7,7%`), **9** en estado **Parcial / Medido localmente** por dependencias de producción (`RF-10`, `RF-12`, `RF-16`, `RNF-01`..`RNF-06` — `34,6%`), y **0** sin avance (`0%`). *(Criterio explícito: `15 + 2 + 9 = 26`; solo se declara "Implementado localmente" lo operable sin simulaciones críticas en ámbito local, transparentando las integraciones externas de Fase 2).*
+**Tabla 9.0 — Resumen cuantitativo de cumplimiento por tipo de requerimiento (`N = 26`):**
+
+| Tipo de Requerimiento | Total (`N`) | Implementado Localmente | Implementado con Acote Externo | Parcial / Medido Localmente | Pendiente Sin Avance |
+| --- | --- | --- | --- | --- | --- |
+| **Funcionales (`RF-01` a `RF-16`)** | **16** | **12** (`75,0%`) | **1** (`RF-02`: `6,3%`) | **3** (`RF-10`, `RF-12`, `RF-16`: `18,8%`) | **0** (`0,0%`) |
+| **No Funcionales (`RNF-01` a `RNF-10`)** | **10** | **3** (`RNF-08`..`RNF-10`: `30,0%`) | **1** (`RNF-07`: `10,0%`) | **6** (`RNF-01`..`RNF-06`: `60,0%`) | **0** (`0,0%`) |
+| **Total Consolidado (`RF + RNF`)** | **26** | **15** (`57,7%`) | **2** (`7,7%`) | **9** (`34,6%`) | **0** (`0,0%`) |
+
+*(Criterio explícito: solo se clasifica como "Implementado localmente" lo operable sin simulaciones críticas en ámbito local; las dependencias de infraestructura SQL/HTTPS, ClaveÚnica, SMTP/Push, shapefile oficial, firma `.exe` y auditorías externas se registran en `INC-01` a `INC-07`.)*
 
 | ID / Requisito | Origen Informe 2 / CU | Módulo / Archivo Real | Estado Real | Pruebas Asociadas | Brecha Externa / Observación |
 | --- | --- | --- | --- | --- | --- |
@@ -599,12 +642,12 @@ Tras las correcciones `HAL-07` a `HAL-10`, el prototipo compila íntegramente de
 | **RNF-02** Latencia P95 < 1.500 ms | SRS RNF-02 / Transv. | `src/server.ts`, `tests/performance.cjs` | **Medido localmente** | `npm run perf`, `Captura B.2` | **P95 = 348,2 ms** (`media = 200,9 ms`, 1.000 casos, 50 clientes). |
 | **RNF-03** Mobile-First | SRS RNF-03 / `CU-01..04` | `public/styles.css`, `public/citizen-react.css` | **Parcial** | `accessibility.test.cjs` | Diseño responsivo y objetivos táctiles ≥ 48 px. |
 | **RNF-04** Privacidad y crypto | SRS RNF-04 / `CU-01..09` | `src/server.ts`, `src/repository.ts` | **Parcial** | `CP-09`, `CP-24`, `CP-28`, `CP-32`, `auth-secret.test.cjs`, `npm audit` | Controles activos y `0` vulns runtime; falta ZAP/pentest externo. |
-| **RNF-05** Atomicidad local | SRS RNF-05 / `CU-05` | `src/repository.ts`, `src/server.ts` | **Parcial** | `CP-21`..`CP-23` | Escritura atómica local; no reemplaza motor SQL ACID remoto. |
-| **RNF-06** Repository en 3FN | SRS RNF-06 / `UML 10.2` | `src/repository.ts` (`ReportRepository`) | **Parcial** | `CP-05`, `CP-24` | 10 tablas normalizadas (Figura 5.1); pendiente adaptador SQL. |
+| **RNF-05** Atomicidad local | SRS RNF-05 / `CU-05` | `src/repository.ts`, `src/server.ts` | **Parcial** | `CP-21`..`CP-23`, `CP-33`..`CP-35` | Escritura atómica local, concurrencia y recuperación probadas; **no equivale a motor SQL ACID**. |
+| **RNF-06** Repository en 3FN | SRS RNF-06 / `UML 10.2` | `src/repository.ts` (`ReportRepository`) | **Parcial** | `CP-05`, `CP-24`, `CP-35` | 10 tablas normalizadas en JSON (Figura 5.1); **no aplica FK en motor** hasta `PostgresReportRepository`. |
 | **RNF-07** Ejecutable `.exe` | SRS RNF-07 / `UML 10.6` | `desktop/main.cjs`, `package.json` | **Implementado (sin firma)** | `npm run desktop:dist`, `packaged-smoke.cjs`, `Captura B.14` | NSIS compilado y probado; sin certificado de firma digital. |
 | **RNF-08** SLA días hábiles | SRS RNF-08 / `CU-07` | `src/domain.ts`, `feriados.example.json` | **Implementado localmente** | `CP-26`, `domain.test.cjs` | Descuenta fines de semana y feriados configurables. |
 | **RNF-09** Feedback UI | SRS RNF-09 / `CU-01..07` | `src/citizen/main.tsx`, `src/admin/main.ts` | **Implementado localmente** | `CP-11`, `CP-12`, `CP-29`, `CP-30` | Mensajes descriptivos inmediatos en cliente y servidor. |
-| **RNF-10** TS estricto y tests | SRS RNF-10 / Transv. | `tsconfig*.json`, `src/`, `tests/` | **Implementado** | `npm run typecheck`, `npm test`, `Captura B.1` | **100% TS estricto** + 43/43 pruebas aprobadas. |
+| **RNF-10** TS estricto y tests | SRS RNF-10 / Transv. | `tsconfig*.json`, `src/`, `tests/` | **Implementado** | `npm run typecheck`, `npm test`, `Captura B.1` | **100% TS estricto** + 46/46 pruebas aprobadas. |
 
 ---
 
@@ -621,7 +664,7 @@ Tras las correcciones `HAL-07` a `HAL-10`, el prototipo compila íntegramente de
 | **RN-07** | Trazabilidad auditable integral y privacidad pública: cada transición genera evento cronológico en `events`/`history` y `publicReport()` suprime PII y notas internas. | `audit()`, `seed()`, `publicReport()`, `publicHistoryComment()` (`src/server.ts`) y `JsonFileRepository.persist()` (`src/repository.ts`). | `CP-05`, `CP-09`, `CP-13`, `CP-23`, `tests/seed.test.cjs` |
 | **RN-08** | Cálculo de antigüedad SLA y promedio de resolución exclusivamente en días hábiles, descontando fines de semana y feriados configurables (`data/feriados.json` / `REPORTA_HOLIDAYS`). | `workingDaysBetween()` (`src/domain.ts`), `loadHolidayCalendar()` (`src/repository.ts`), `workdays()` (`src/server.ts`, `src/admin/main.ts`). | `tests/domain.test.cjs`, `CP-26` |
 
-Las 8 Reglas de Negocio (`RN-01` a `RN-08`) operan de extremo a extremo y se verifican en la suite automatizada. Con respecto a la rúbrica, tras cerrar todas las brechas de código, seguridad cliente y evidencias visuales reales (TS estricto integral, polígono comunal aproximado, capa térmica Canvas, patrón `ReportRepository`, retiro de accesos demo en `/app.js`, trazabilidad multi-evento en semilla, **43/43 tests**, benchmark **P95 = 348,2 ms** y empaquetado NSIS validado en ventana real de Windows), el prototipo logra **implementación completa en ámbito local**, manteniendo documentadas de forma transparente las brechas de producción que requieren infraestructura o entidades externas.
+Las 8 Reglas de Negocio (`RN-01` a `RN-08`) operan de extremo a extremo y se verifican en la suite automatizada. Con respecto a la rúbrica, tras cerrar todas las brechas de código, seguridad cliente y evidencias visuales reales (TS estricto integral, polígono comunal aproximado, capa térmica Canvas, patrón `ReportRepository`, retiro de accesos demo en `/app.js`, trazabilidad multi-evento en semilla, **46/46 tests** incluyendo concurrencia, recuperación y respaldo, benchmark **P95 = 348,2 ms** y empaquetado NSIS validado en ventana real de Windows), el prototipo logra **implementación completa en ámbito local**, manteniendo documentadas de forma transparente las brechas estructurales e institucionales pendientes (`INC-01` a `INC-07`).
 
 ---
 
@@ -648,7 +691,7 @@ Las 8 Reglas de Negocio (`RN-01` a `RN-08`) operan de extremo a extremo y se ver
 
 ## 11. Conclusiones
 
-1. **Unificación completa en TypeScript estricto y estabilidad verificada:** La migración de `src/server.ts`, `src/repository.ts`, `src/admin/main.ts` y `src/admin/heatmap.ts` unifica todo el código fuente bajo compilación estricta (`0` errores en `npm run typecheck`) y resuelve los defectos críticos detectados en `/admin`, respaldado por **43/43 pruebas aprobadas**, benchmark local de **P95 = 348,2 ms** y paquete Windows NSIS validado (`tests/packaged-smoke.cjs`).
+1. **Unificación completa en TypeScript estricto y estabilidad verificada:** La migración de `src/server.ts`, `src/repository.ts`, `src/admin/main.ts` y `src/admin/heatmap.ts` unifica todo el código fuente bajo compilación estricta (`0` errores en `npm run typecheck`) y resuelve los defectos críticos detectados en `/admin`, respaldado por **46/46 pruebas aprobadas** (incluyendo concurrencia, recuperación ante fallos y respaldo/restauración), benchmark local de **P95 = 348,2 ms** y paquete Windows NSIS validado (`tests/packaged-smoke.cjs`).
 2. **Seguridad práctica desde el diseño:** El sistema exige sesión ciudadana para reportar, anonimiza salidas públicas, protege adhesiones con `rutHash` HMAC-SHA256, genera secretos aleatorios por instalación (`.auth-secret`), usa `bcryptjs` costo 12, limita intentos de login (`429` desde el 5.° fallo), elimina claves demo del bundle cliente, valida Magic Bytes en imágenes/videos y aísla el proceso Renderer de Electron.
 3. **Transparencia frente a la fase productiva:** Quedan claramente delimitadas las brechas dependientes de despliegue institucional y terceros (PostgreSQL/Supabase + PostGIS/RLS, HTTPS, SMTP/Push, ClaveÚnica, shapefile oficial, firma digital `.exe`, auditoría externa WCAG/OWASP y medición de KPIs en terreno).
 
@@ -712,7 +755,7 @@ node -e "const b=require('bcryptjs'); console.log(b.hashSync(process.argv[1], 12
 | ID Evidencia | Artefacto / Vista Verificada | Comando o Ruta | Resultado Verificado |
 | --- | --- | --- | --- |
 | **EV-01** | Compilación TypeScript estricta integral (`tsconfig.json` + `tsconfig.server.json`) | `npm run typecheck` | **0 errores (`ExitCode: 0`)** (Captura B.2) |
-| **EV-02** | Suite de 43 pruebas automatizadas (`CP-01`..`CP-32` + 11 complementarias) | `npm test` | **43/43 aprobadas** (Captura B.1) |
+| **EV-02** | Suite de 46 pruebas automatizadas (`CP-01`..`CP-35` + 11 complementarias) | `npm test` | **46/46 aprobadas** (Captura B.1) |
 | **EV-03** | Benchmark local de rendimiento (1.000 registros, 50 clientes paralelos) | `npm run perf` | **P95 = 348,2 ms** (`media = 200,9 ms`, `pass: true`, Captura B.2) |
 | **EV-04** | **Interfaz de Usuarios** (`/app` — Login, Registro RUT, Mi cuenta, Mapa, Muro vecinal, Reportar, Modal Antes/Después y Seguimiento) | `src/citizen/main.tsx` | Verificado en `CP-02`, `CP-24`, `CP-31` (Subsección B.2: Capturas B.3 a B.10) |
 | **EV-05** | **Interfaz de Administrador** (`/admin` — Login sin botones demo, Bandeja por lotes, Cierre Técnico, Chart.js y Mapa de Calor Canvas) | `public/municipal.html`, `src/admin/main.ts`, `src/admin/heatmap.ts` | Verificado en `CP-03`, `CP-14`..`CP-23`, `CP-30`, `CP-32` (Subsección B.3: Capturas B.11 a B.13) |
@@ -753,20 +796,32 @@ node -e "const b=require('bcryptjs'); console.log(b.hashSync(process.argv[1], 12
 
 ![Captura B.14 (EV-07 — Consola de Escritorio Electron Windows): Ventana nativa de Reporta Puerto Montt Municipal.exe ejecutándose sobre Windows 11 con aislamiento de proceso Renderer y backend Node.js compilado integrado.](ev07_electron_desktop.png)
 
+#### B.4 Evidencia de flujo funcional completo de punta a punta sobre un mismo folio (`RPM-2026-0051`)
+
+Las siguientes cuatro capturas secuenciales trazan un único reporte ciudadano (**`RPM-2026-0051`**, categoría *Alumbrado público*, creado por la vecina *Camila Soto* en sector Mirasol) a lo largo de todo su ciclo de vida:
+
+![Captura B.15 (Flujo E2E Paso 1 — Creación ciudadana): Registro inicial del folio RPM-2026-0051 en estado Pendiente visible en /app -> Seguimiento.](ev_e2e_1_creacion.png)
+
+![Captura B.16 (Flujo E2E Paso 2 — Revisión, asignación y despacho a terreno): Mismo folio RPM-2026-0051 en /admin mostrando historial de 3 hitos (Pendiente, En revisión, En terreno), departamento Operaciones asignado y formulario de Cierre técnico verificado.](ev_e2e_2_revision_terreno.png)
+
+![Captura B.17 (Flujo E2E Paso 3 — Cierre técnico verificado): Mismo folio RPM-2026-0051 en estado Resuelto dentro de /admin con comparativa fotográfica Antes/Después, 4 hitos en Historial de auditoría y bloqueo de transiciones posteriores.](ev_e2e_3_cierre_tecnico.png)
+
+![Captura B.18 (Flujo E2E Paso 4 — Notificación al ciudadano): Bandeja personal en /app -> Mi cuenta de la vecina Camila Soto mostrando las 4 notificaciones generadas para el folio RPM-2026-0051 desde su recepción hasta el cierre verificado.](ev_e2e_4_notificacion_ciudadano.png)
+
 ---
 
 ### Anexo C. Lista de verificación honesta frente a la Guía de Evaluación 3
 
 | Estado | Criterio Oficial de Evaluación (TI3043) | Situación Real Documentada |
 | --- | --- | --- |
-| ☑ | **1. Continuidad, alcance y trazabilidad** | Trazabilidad completa y transparente en `MATRIZ_RUBRICA.md` y Sección 9 (`CAM-01` a `CAM-06`, `RN-01` a `RN-08`). |
-| ☑ | **2. Tecnologías, tendencias y entorno** | Stack real en `package.json`, análisis Cloud/IaaS/SaaS/Local y comandos reproducibles probados. |
-| ☑ | **3. Arquitectura, interfaces y datos** | Arquitectura 100% en TypeScript estricto, patrón `ReportRepository` (`src/repository.ts`), `schemaVersion: 3` (10 tablas justificadas en 3FN), polígono aproximado y capa térmica Canvas. *(Pendiente adaptador PostgreSQL/Supabase productivo).* |
-| ◐ | **4. Programación y funcionalidades** | Flujos locales completos, 14 capturas reales (incluyendo Antes/Después y Electron) y defectos críticos corregidos (`HAL-01` a `HAL-10`); pendientes integraciones externas (SMTP, Web Push, ClaveÚnica, shapefile oficial y mapa offline detallado). |
-| ◐ | **5. Confidencialidad, normativa y OWASP** | Cobertura completa de OWASP Top 10:2021 (`A01`–`A10`), retiro de credenciales demo en cliente (`CP-32`), `bcryptjs` 12, `.auth-secret`, `rutHash`, Magic Bytes, CORS, rate limit (`429` al 5.° fallo), RBAC y minimización PII; pendiente auditoría WCAG/pentest externa y firma digital del `.exe`. |
-| ☑ | **6. Diseño y ejecución de pruebas** | `npm run typecheck`, **43/43** tests (`npm test`), Tabla 7.1 de 5 columnas (`CP-01`..`CP-32` y `seed.test.cjs`), benchmark `npm run perf` (`348,2 ms` P95), `tests/packaged-smoke.cjs` y `./verify.ps1` aprobados. |
-| ☑ | **7. Defectos, correcciones y validación** | Hallazgos y bloqueos críticos corregidos y re-probados (`HAL-01` a `HAL-10`), documentando con transparencia brechas de producción. |
-| ☑ | **8. Calidad del informe y evidencias** | Informe `.md` y `.docx` en formato oficial INACAP alineados al 100% con código fuente, repositorio GitHub (`https://github.com/ElProductor/Reporta-Puerto-montt`) y capturas reales Windows/Chrome verificadas. |
+| ☑ | **1. Continuidad, alcance y trazabilidad** | Trazabilidad completa y transparente en `MATRIZ_RUBRICA.md` y Sección 9 (Tabla 9.0 cuantitativa RF/RNF, `CAM-01`..`CAM-06`, `RN-01`..`RN-08`). |
+| ☑ | **2. Tecnologías, tendencias y entorno** | Stack real en `package.json`, versión Git etiquetada (`v1.0.0-eval3`), instrucciones del instalador `.exe` y comandos reproducibles probados. |
+| ◐ | **3. Arquitectura, interfaces y datos** | Arquitectura 100% TS estricto, `ReportRepository`, `schemaVersion: 3` (10 tablas en JSON); **precisado que JSON local no equivale a SGBD relacional ACID** (`INC-01`). |
+| ◐ | **4. Programación y funcionalidades** | Flujos locales completos, 18 capturas reales (incluyendo flujo E2E de un mismo folio `B.15`–`B.18` y Electron) y defectos `HAL-01`–`HAL-10`; pendientes integraciones externas (`INC-02`, `INC-03`). |
+| ◐ | **5. Confidencialidad, normativa y OWASP** | Controles técnicos alineados con OWASP Top 10:2021 (`A01`–`A10`), análisis ampliado de fotos/videos/coordenadas/registros, cero secretos expuestos (`CP-32`); **diferenciado de certificación o cumplimiento jurídico integral** (`INC-04`, `INC-06`). |
+| ☑ | **6. Diseño y ejecución de pruebas** | `npm run typecheck`, **46/46** tests (`npm test`, incluyendo concurrencia, recuperación y respaldo `CP-33`..`CP-35`), auditoría DOM/móvil Chrome, benchmark `348,2 ms` P95, `packaged-smoke.cjs` y `./verify.ps1` aprobados. *(Pendientes pruebas con usuarios reales: `INC-05`).* |
+| ☑ | **7. Defectos, correcciones y validación** | Hallazgos `HAL-01` a `HAL-10` con prioridad, criticidad y comportamiento Antes/Después, más registro `INC-01`–`INC-07` diferenciando limitaciones del software vs. ampliaciones externas. |
+| ☑ | **8. Calidad del informe y evidencias** | Informe `.md` y `.docx` en formato oficial INACAP con portada y pie de página consistentes (`Noviembre de 2026`), tablas sin fragmentación, 18 capturas reales y repositorio GitHub (`v1.0.0-eval3`) verificado. |
 
 ---
 
