@@ -787,7 +787,9 @@ function renderMetrics(): void {
   const m = metrics;
   const grid = $('#metricGrid');
   if (!m || !grid) return;
-  grid.innerHTML = `<div class="metric"><label>Total de reportes</label><strong>${m.total}</strong><small>${m.events} eventos auditados</small></div><div class="metric"><label>En seguimiento</label><strong>${m.open}</strong><small>casos abiertos</small></div><div class="metric"><label>Tiempo medio de resolución</label><strong>${m.averageWorkdays} <small style="display:inline">días hábiles</small></strong><small>desde el ingreso al cierre</small></div><div class="metric"><label>Tasa de resolución</label><strong>${m.resolutionRate}%</strong><small>${m.resolved} reportes resueltos</small></div>`;
+  const fmtCl = (v: number): string => String(v).replace('.', ',');
+  const workdaysLabel = m.averageWorkdays === 1 ? 'día hábil' : 'días hábiles';
+  grid.innerHTML = `<div class="metric"><label>Total de reportes</label><strong>${m.total}</strong><small>${m.events} eventos auditados</small></div><div class="metric"><label>En seguimiento</label><strong>${m.open}</strong><small>casos abiertos</small></div><div class="metric"><label>Tiempo medio de resolución</label><strong>${fmtCl(m.averageWorkdays)} <small style="display:inline;letter-spacing:0;font-size:11px;font-weight:500">${workdaysLabel}</small></strong><small>desde el ingreso al cierre</small></div><div class="metric"><label>Tasa de resolución</label><strong>${fmtCl(m.resolutionRate)}%</strong><small>${m.resolved} reportes resueltos</small></div>`;
   const sts = $<HTMLSelectElement>('#adminStatusFilter');
   if (sts && sts.options.length === 1) {
     sts.insertAdjacentHTML(
