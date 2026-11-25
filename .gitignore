@@ -1,0 +1,10 @@
+node_modules/
+build/
+release-final/
+data/
+.auth-secret
+.env
+*.log
+~$*.docx
+.DS_Store
+Thumbs.db

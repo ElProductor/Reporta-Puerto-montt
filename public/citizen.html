@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b3d3a">
+  <meta name="description" content="Reporta incidencias, comparte evidencia y sigue su atención en Puerto Montt.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/offline.css">
+  <link rel="stylesheet" href="/citizen-react.css">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/vendor/markercluster/MarkerCluster.css">
+  <link rel="stylesheet" href="/vendor/markercluster/MarkerCluster.Default.css">
+  <title>Reporta Puerto Montt · Comunidad</title>
+  <script defer src="/vendor/leaflet/leaflet.js"></script>
+  <script defer src="/vendor/markercluster/leaflet.markercluster.js"></script>
+  <script defer src="/citizen.bundle.js"></script>
+</head>
+<body class="citizen-app-mode">
+  <div id="citizenRoot"><div class="citizen-loading" role="status">Cargando Reporta Puerto Montt…</div></div>
+  <noscript>Activa JavaScript para usar la aplicación ciudadana.</noscript>
+  <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));</script>
+</body>
+</html>

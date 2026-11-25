@@ -1,0 +1,85 @@
+{
+  "name": "reporta-puerto-montt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma cívica local de reportes ciudadanos para Puerto Montt",
+  "author": "Reporta Puerto Montt",
+  "scripts": {
+    "build:domain": "tsc -p tsconfig.server.json && esbuild src/citizen/main.tsx --bundle --minify --target=es2022 --outfile=public/citizen.bundle.js && esbuild src/admin/main.ts --bundle --minify --target=es2022 --outfile=public/app.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
+    "prestart": "npm run build:domain",
+    "start": "node server.js",
+    "predev": "npm run build:domain",
+    "dev": "node server.js",
+    "predesktop": "npm run build:domain",
+    "test": "node --test tests/*.test.cjs",
+    "pretest": "npm run build:domain",
+    "perf": "node tests/performance.cjs",
+    "preperf": "npm run build:domain",
+    "desktop": "electron desktop/main.cjs",
+    "predesktop:dist": "npm run build:domain",
+    "desktop:dist": "electron-builder --win nsis"
+  },
+  "main": "desktop/main.cjs",
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "electron": "^45.3.3",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "cl.puertomontt.reporta.admin",
+    "productName": "Reporta Puerto Montt Municipal",
+    "directories": {
+      "output": "release-final"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "server.js",
+        "to": "reporta-backend/server.js"
+      },
+      {
+        "from": "build",
+        "to": "reporta-backend/build"
+      },
+      {
+        "from": "public",
+        "to": "reporta-backend/public"
+      },
+      {
+        "from": "node_modules/bcryptjs",
+        "to": "reporta-backend/node_modules/bcryptjs"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "Reporta-Puerto-Montt-Admin-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "chart.js": "^4.4.7",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

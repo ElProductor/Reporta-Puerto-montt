@@ -1,0 +1,15 @@
+{
+  "id": "/app",
+  "name": "Reporta Puerto Montt",
+  "short_name": "Reporta PM",
+  "description": "Reporta y sigue incidencias de Puerto Montt",
+  "lang": "es-CL",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f9f6",
+  "theme_color": "#0b3d3a",
+  "icons": [
+    {"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
